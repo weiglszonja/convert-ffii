@@ -38,6 +38,7 @@ if __name__ == "__main__":
                         '-pix_fmt', 'gray',
                         '-s', str(width)+"x"+str(height),
                         '-i', '-',
+                        '-c:v', 'ffv1',  # Lossless codec
                         of)
                  
                 p = subprocess.Popen(cmdstr, stdin=subprocess.PIPE, shell=False)
