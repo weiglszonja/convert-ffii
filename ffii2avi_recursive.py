@@ -28,6 +28,11 @@ if __name__ == "__main__":
                 
                 of = filename[:-5]+'.avi'
     
+                # Skip if .avi file already exists
+                if os.path.exists(of):
+                    print(f"Skipping {filename} (output {of} already exists)")
+                    continue
+
                 f = open(filename,'rb')
                 m = f.read(8)
                 height, width = struct.unpack(">2I", m)
@@ -42,19 +47,23 @@ if __name__ == "__main__":
                         of)
                  
                 p = subprocess.Popen(cmdstr, stdin=subprocess.PIPE, shell=False)
-                
-                while True:
-                    img = f.read(width*height)
-                    p.stdin.write(img)
-                    m = f.read(8)
-                    if not m:
-                        break
-                    height, width = struct.unpack(">2I", m)
-                    
-                print('Saved in %s'%of)
-                
+                try:
+                    while True:
+                        img = f.read(width*height)
+                        if not img:
+                            break
+                        p.stdin.write(img)
+                        m = f.read(8)
+                        if not m:
+                            break
+                        height, width = struct.unpack(">2I", m)
+                    p.stdin.close()
+                    p.wait()
+                except Exception as e:
+                    print(f"Error during ffmpeg process: {e}")
+                    p.kill()
+                print('Saved in %s' % of)
                 nbFiles += 1
-                
-    print('Conversion of %i files over!'%nbFiles)
-    print("--- %.2f seconds elapsed ---" % (time.time() - start_time))
-    p.kill()
+
+print('Conversion of %i files over!'%nbFiles)
+print("--- %.2f seconds elapsed ---" % (time.time() - start_time))
